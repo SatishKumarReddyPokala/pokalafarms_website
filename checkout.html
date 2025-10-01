@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkout - pokalafarms</title>
+
+  <!-- FontAwesome CDN for icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <div class="logo">
+        <img src="images/logo.png" alt="Logo" />
+      </div>
+      <div class="store-name">pokalafarms</div>
+    </div>
+    <div class="header-right">
+      <a href="checkout.html" title="Cart" class="header-icon" aria-label="Cart" id="cart-icon">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count" id="cart-count" style="display:none;">0</span>
+      </a>
+      <a href="index.html" title="Back to Home" class="header-icon" aria-label="Back to Home">
+        <i class="fas fa-home"></i>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <h1>Your Cart</h1>
+    <div id="cart-container"></div>
+
+    <div id="cart-summary" style="display:none; margin-top: 20px;">
+      <h3>Order Summary</h3>
+      <p id="total-amount">Total: $0</p>
+      <button id="place-order-btn">Place Order</button>
+    </div>
+
+    <p id="empty-cart-message" style="display:none; margin-top: 30px; font-style: italic;">
+      Your cart is empty. <a href="index.html">Go back shopping</a>.
+    </p>
+  </main>
+
+  <footer>
+    <div class="contact-info">
+      <h3>Contact Us</h3>
+      <p>pokalafarms</p>
+      <p>Email: pokalafarms@gmail.com</p>
+      <p>Phone: +919666796840</p>
+      <p>Address: Bangalore</p>
+    </div>
+    <div class="social-icons">
+      <a href="https://wa.me/12345678901" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+      </a>
+      <a href="https://www.instagram.com/sharer/sharer.php?u=https%3A//generalstore.com" target="_blank" rel="noopener" aria-label="Instagram Share">
+        <i class="fab fa-instagram"></i>
+      </a>
+    </div>
+  </footer>
+
+  <!-- Order Modal -->
+  <div id="order-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="close-modal">&times;</span>
+      <h2>Enter Your Details</h2>
+      <form id="order-form">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required />
+
+        <label for="phone">Mobile Number:</label>
+        <input type="tel" id="phone" pattern="[0-9]{10}" required />
+
+        <label for="address">Address:</label>
+        <textarea id="address" rows="3" required></textarea>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" required />
+		
+        <label for="comments">Comments (optional):</label>
+        <textarea id="comments" rows="2" placeholder="Any specific instructions..."></textarea>
+
+        <div class="modal-actions">
+          <button type="submit">Submit Order</button>
+          <button type="button" id="cancel-order">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function renderCart() {
+      const container = document.getElementById('cart-container');
+      const summary = document.getElementById('cart-summary');
+      const emptyMessage = document.getElementById('empty-cart-message');
+
+      container.innerHTML = '';
+
+      if (checkoutDB.cartItems.length === 0) {
+        summary.style.display = 'none';
+        emptyMessage.style.display = 'block';
+        return;
+      } else {
+        summary.style.display = 'block';
+        emptyMessage.style.display = 'none';
+      }
+
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr style="border-bottom: 2px solid #ddd;">
+          <th style="text-align:left; padding: 8px;">Product</th>
+          <th style="text-align:center; padding: 8px;">Quantity</th>
+          <th style="text-align:right; padding: 8px;">Price</th>
+          <th style="text-align:right; padding: 8px;">Subtotal</th>
+          <th style="text-align:center; padding: 8px;">Remove</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+
+      checkoutDB.cartItems.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #ddd';
+
+        tr.innerHTML = `
+          <td style="padding: 8px;">${item.name}</td>
+          <td style="text-align:center; padding: 8px;">
+            <input type="number" min="1" max="10" value="${item.qty}" data-index="${index}" class="quantity-input" />
+          </td>
+          <td style="text-align:right; padding: 8px;">$${item.price.toFixed(2)}</td>
+          <td style="text-align:right; padding: 8px;">$${(item.price * item.qty).toFixed(2)}</td>
+          <td style="text-align:center; padding: 8px;">
+            <button class="remove-btn" data-name="${item.name}" title="Remove item" aria-label="Remove ${item.name}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      updateTotal();
+
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const productName = btn.getAttribute('data-name');
+          checkoutDB.removeItem(productName);
+          renderCart();
+          updateCartCount();
+        });
+      });
+
+      document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', () => {
+          const index = parseInt(input.dataset.index);
+          let newQty = parseInt(input.value);
+          if (isNaN(newQty) || newQty < 1) {
+            newQty = 1;
+            input.value = 1;
+          } else if (newQty > 10) {
+            newQty = 10;
+            input.value = 10;
+          }
+          checkoutDB.updateQuantity(index, newQty);
+          renderCart();
+          updateCartCount();
+        });
+      });
+    }
+
+    function updateTotal() {
+      const total = checkoutDB.cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+      document.getElementById('total-amount').textContent = `Total: $${total.toFixed(2)}`;
+    }
+
+    // Show modal on place order
+    document.getElementById('place-order-btn').addEventListener('click', () => {
+      if (checkoutDB.cartItems.length === 0) {
+        alert("Your cart is empty!");
+        return;
+      }
+      document.getElementById('order-modal').style.display = 'block';
+    });
+
+    // Close modal
+    document.getElementById('close-modal').addEventListener('click', () => {
+      document.getElementById('order-modal').style.display = 'none';
+    });
+    document.getElementById('cancel-order').addEventListener('click', () => {
+      document.getElementById('order-modal').style.display = 'none';
+    });
+
+    // Submit order form
+    document.getElementById('order-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const email = document.getElementById('email').value.trim();
+	  const comments = document.getElementById('comments').value.trim();
+
+      if (!name || !phone || !address || !email) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      alert(`Thank you ${name}! Your order has been placed.`);
+
+      checkoutDB.cartItems = [];
+      checkoutDB.saveToStorage();
+      renderCart();
+      updateCartCount();
+      document.getElementById('order-form').reset();
+      document.getElementById('order-modal').style.display = 'none';
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkoutDB.loadFromStorage();
+      updateCartCount();
+      renderCart();
+    });
+  </script>
+
+  <style>
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 30px 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 15px;
+    }
+
+    .modal-content label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .modal-actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .modal-actions button {
+      padding: 8px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .modal-actions button[type="submit"] {
+      background: #1e90ff;
+      color: white;
+    }
+
+    .modal-actions button#cancel-order {
+      background: #ccc;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      font-size: 22px;
+      cursor: pointer;
+    }
+  </style>
+</body>
+</html>
