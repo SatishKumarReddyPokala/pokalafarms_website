@@ -19,7 +19,6 @@
       <div class="logo">
         <img src="images/logo.png" alt="Logo" />
       </div>
-      <div class="store-name">pokalafarms</div>
     </div>
     <div class="header-right">
       <a href="checkout.html" title="Cart" class="header-icon" aria-label="Cart" id="cart-icon">
@@ -59,28 +58,29 @@
   <script>
     // Example products data grouped by category
 const productsData = {
-  "Fruits": [
-    { name: "Apple", price: 1, img: "images/products/apple.jpg" },
-    { name: "Banana", price: 0.5, img: "images/products/banana.jpg" },
-    { name: "Orange", price: 0.8, img: "images/products/orange.jpg" },
-    { name: "Apple", price: 1, img: "images/products/apple.jpg" },
-    { name: "Banana", price: 0.5, img: "images/products/banana.jpg" },
-    { name: "Orange", price: 0.8, img: "images/products/orange.jpg" },
-    { name: "Apple", price: 1, img: "images/products/apple.jpg" },
-    { name: "Banana", price: 0.5, img: "images/products/banana.jpg" },
-    { name: "Orange", price: 0.8, img: "images/products/orange.jpg" }
+  "Pulses": [
+    { name: "Toor Dal/ Kandi", price: 1, img: "images/products/apple.jpg" },
+    { name: "Harse gram/ Ulava", price: 0.5, img: "images/products/banana.jpg" },
+    { name: "Sesame/ Nuvvulu", price: 0.8, img: "images/products/orange.jpg" },
+	{ name: "Chickpeas/ Senagalu", price: 0.8, img: "images/products/orange.jpg" },
+	{ name: "ground Nut/ Veru senaga", price: 0.8, img: "images/products/orange.jpg" },
   ],
-  "Baked Goods": [
+  "Oils": [
     { name: "Bread", price: 2, img: "images/products/bread.jpg" },
     { name: "Croissant", price: 2.5, img: "images/products/croissant.jpg" },
     { name: "Muffin", price: 1.5, img: "images/products/muffin.jpg" }
   ],
-  "Dairy": [
+  "Snacks": [
     { name: "Milk", price: 3, img: "images/products/milk.jpg" },
     { name: "Cheese", price: 4, img: "images/products/cheese.jpg" },
     { name: "Yogurt", price: 2, img: "images/products/yogurt.jpg" }
   ],
-  "Vegetables": [
+  "Flour": [
+    { name: "Milk", price: 3, img: "images/products/milk.jpg" },
+    { name: "Cheese", price: 4, img: "images/products/cheese.jpg" },
+    { name: "Yogurt", price: 2, img: "images/products/yogurt.jpg" }
+  ],
+  "Millets": [
     { name: "Carrot", price: 1, img: "images/products/carrot.jpg" },
     { name: "Broccoli", price: 1.5, img: "images/products/broccoli.jpg" },
     { name: "Spinach", price: 1.2, img: "images/products/spinach.jpg" }
@@ -112,7 +112,7 @@ const productsData = {
       
       productDiv.innerHTML = `
         <img src="${product.img}" alt="${product.name}" />
-        <span>${product.name} - $${product.price.toFixed(2)}</span>
+        <span>${product.name} $${product.price.toFixed(2)}</span>
         <button onclick="addToCart('${product.name}', ${product.price})">Add to Cart</button>
       `;
 
